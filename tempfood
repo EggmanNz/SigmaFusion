@@ -1,0 +1,160 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Button,
+  Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
+
+const TempFoodScreen = () => {
+  const [fats, setFats] = useState('');
+  const [carbohydrates, setCarbohydrates] = useState('');
+  const [proteins, setProteins] = useState('');
+  const [dataSets, setDataSets] = useState([]); // Array to hold multiple datasets
+
+  const handleSubmit = () => {
+    if (!fats || !carbohydrates || !proteins) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    const fatsValue = parseFloat(fats);
+    const carbohydratesValue = parseFloat(carbohydrates);
+    const proteinsValue = parseFloat(proteins);
+
+    if (isNaN(fatsValue) || isNaN(carbohydratesValue) || isNaN(proteinsValue) || 
+        fatsValue < 0 || carbohydratesValue < 0 || proteinsValue < 0) {
+      Alert.alert('Error', 'Please enter valid positive numbers');
+      return;
+    }
+
+    const newData = [
+      { name: 'Fats', value: fatsValue, color: '#FF6384', legendFontColor: '#fff', legendFontSize: 15 },
+      { name: 'Carbs', value: carbohydratesValue, color: '#36A2EB', legendFontColor: '#fff', legendFontSize: 15 },
+      { name: 'Proteins', value: proteinsValue, color: '#FFCE56', legendFontColor: '#fff', legendFontSize: 15 },
+    ];
+
+    setDataSets((prevDataSets) => [...prevDataSets, newData]); // Add new dataset to the history
+    setFats('');
+    setCarbohydrates('');
+    setProteins('');
+    Keyboard.dismiss();
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View>
+            <ScrollView horizontal>
+              {dataSets.map((data, index) => (
+                <View key={index} style={styles.chartContainer}>
+                  <Text style={styles.chartLabel}>Meal {index + 1}</Text>
+                  <PieChart
+                    data={data.map((item) => ({
+                      name: item.name,
+                      population: item.value,
+                      color: item.color,
+                      legendFontColor: item.legendFontColor,
+                      legendFontSize: item.legendFontSize,
+                    }))}
+                    width={Dimensions.get('window').width - 40} // Chart width
+                    height={220}
+                    chartConfig={{
+                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    }}
+                    accessor="population"
+                    backgroundColor="transparent"
+                    paddingLeft="15"
+                    absolute // Show exact values inside the chart
+                    style={{ marginBottom: 20 }}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* Input Section */}
+            <Text style={styles.label}>Fats (g):</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="Enter fats in grams"
+              placeholderTextColor="blue"
+              value={fats}
+              onChangeText={setFats}
+            />
+
+            <Text style={styles.label}>Carbohydrates (g):</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="Enter carbohydrates in grams"
+              placeholderTextColor="blue"
+              value={carbohydrates}
+              onChangeText={setCarbohydrates}
+            />
+
+            <Text style={styles.label}>Proteins (g):</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="Enter proteins in grams"
+              placeholderTextColor="blue"
+              value={proteins}
+              onChangeText={setProteins}
+            />
+
+            {/* Submit Button */}
+            <Button title="Submit" onPress={handleSubmit} />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#25292e',
+  },
+  label: {
+    fontSize: 18,
+    marginVertical: 8,
+    color: '#fff',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    marginBottom: 10,
+  },
+  chartContainer: {
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  chartLabel: {
+    fontSize: 18,
+    color: '#fff',
+    marginBottom: 10,
+  },
+});
+
+export default TempFoodScreen;
